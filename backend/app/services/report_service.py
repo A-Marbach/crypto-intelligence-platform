@@ -1,4 +1,6 @@
 
+from datetime import datetime, timezone
+
 from app.services.multi_timeframe_service import scan_all_timeframes
 
 
@@ -39,6 +41,11 @@ def build_report(scan: dict) -> dict:
             "reason": item.get("reason"),
         }
 
+        # Include 4H pullback analysis
+        if "pullback" in item:
+            report_item["pullback"] = item["pullback"]
+
+        # Include trend and RSI for each timeframe
         if "timeframes" in item:
             report_item["timeframes"] = {
                 interval: {
@@ -50,8 +57,7 @@ def build_report(scan: dict) -> dict:
 
         markets.append(report_item)
 
-    # Complete candidates first, then near-matches.
-    # Skipped/error markets stay last.
+    # Candidates first, then watchlist, skipped and errors
     priority = {
         "candidate": 0,
         "watch": 1,
@@ -68,6 +74,7 @@ def build_report(scan: dict) -> dict:
     )
 
     return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "summary": {
             "scanned": scan["scanned"],
             "candidates": scan["candidate_count"],
