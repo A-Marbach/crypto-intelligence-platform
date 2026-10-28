@@ -1,0 +1,477 @@
+
+<div class="dashboard">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div>
+      <p class="subtitle">CRYPTO MARKET ANALYSIS</p>
+      <h1>Crypto Intelligence Platform</h1>
+      <p>Multi-Timeframe Scanner · 1D / 4H / 1H</p>
+    </div>
+
+    <button
+      class="scan-button"
+      type="button"
+      (click)="runScan()"
+      [disabled]="loading()"
+    >
+      {{ loading() ? 'Scanne...' : 'Jetzt scannen' }}
+    </button>
+  </header>
+
+  <!-- ERROR MESSAGES -->
+  @if (error()) {
+    <div class="error" role="alert">
+      {{ error() }}
+    </div>
+  }
+
+  @if (priceError()) {
+    <div class="price-warning" role="status">
+      EUR-Kurse momentan nicht verfügbar.
+      Die technische Scanner-Analyse funktioniert weiterhin.
+    </div>
+  }
+
+  @if (report(); as data) {
+
+    <!-- SCAN INFORMATION -->
+    <div class="scan-info">
+      <span>
+        Letzter Report:
+        {{ data.generated_at | date:'dd.MM.yyyy HH:mm:ss' }}
+      </span>
+
+      <span class="scan-status">
+        @if (loading()) {
+          Aktualisierung läuft...
+        } @else if (error()) {
+          Letzter erfolgreicher Report
+        } @else {
+          Scan abgeschlossen
+        }
+      </span>
+    </div>
+
+    <!-- STATISTICS -->
+    <section class="stats">
+      <div class="stat">
+        <span>Analysierte Coins</span>
+        <strong>{{ data.summary.scanned }}</strong>
+      </div>
+
+      <div class="stat">
+        <span>Kandidaten</span>
+        <strong>{{ data.summary.candidates }}</strong>
+      </div>
+
+      <div class="stat">
+        <span>Beobachten</span>
+        <strong>{{ data.summary.watch }}</strong>
+      </div>
+
+      <div class="stat">
+        <span>Übersprungen</span>
+        <strong>{{ data.summary.skipped }}</strong>
+      </div>
+    </section>
+
+    <!-- MARKET SCANNER -->
+    <section class="panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Market Scanner</h2>
+          <p>
+            Klicke auf einen Coin, um seine Detailanalyse zu öffnen.
+          </p>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Coin</th>
+              <th>Kurs (EUR)</th>
+              <th>Status</th>
+              <th>Kriterien</th>
+              <th>1D Trend</th>
+              <th>4H Trend</th>
+              <th>1H Trend</th>
+              <th>RSI 1H</th>
+              <th>4H Pullback</th>
+              <th>Chart</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (coin of data.markets; track coin.market) {
+              <tr>
+
+                <!-- COIN -->
+                <td>
+                  <button
+                    type="button"
+                    class="coin-button"
+                    (click)="selectMarket(coin)"
+                    [attr.aria-label]="'Detailanalyse für ' + coin.market + ' öffnen'"
+                  >
+                    {{ coin.market }}
+                  </button>
+                </td>
+
+                <!-- EUR PRICE -->
+                <td class="price-cell">
+                  {{ formatPrice(coin.market) }}
+                </td>
+
+                <!-- STATUS -->
+                <td>
+                  <span
+                    class="status"
+                    [class]="coin.status"
+                  >
+                    {{ coin.status }}
+                  </span>
+                </td>
+
+                <!-- STRATEGY CHECKS -->
+                <td>
+                  {{ coin.checks_passed }}/{{ coin.checks_total }}
+                </td>
+
+                <!-- DAILY TREND -->
+                <td
+                  [class.bullish]="coin.timeframes?.['1d']?.trend === 'bullish'"
+                  [class.bearish]="coin.timeframes?.['1d']?.trend === 'bearish'"
+                >
+                  {{ coin.timeframes?.['1d']?.trend ?? '–' }}
+                </td>
+
+                <!-- 4H TREND -->
+                <td
+                  [class.bullish]="coin.timeframes?.['4h']?.trend === 'bullish'"
+                  [class.bearish]="coin.timeframes?.['4h']?.trend === 'bearish'"
+                >
+                  {{ coin.timeframes?.['4h']?.trend ?? '–' }}
+                </td>
+
+                <!-- 1H TREND -->
+                <td
+                  [class.bullish]="coin.timeframes?.['1h']?.trend === 'bullish'"
+                  [class.bearish]="coin.timeframes?.['1h']?.trend === 'bearish'"
+                >
+                  {{ coin.timeframes?.['1h']?.trend ?? '–' }}
+                </td>
+
+                <!-- RSI -->
+                <td>
+                  {{ coin.timeframes?.['1h']?.rsi14 ?? '–' }}
+                </td>
+
+                <!-- PULLBACK -->
+                <td>
+                  @if (coin.pullback; as pullback) {
+                    <span
+                      [class.passed]="pullback.status === 'pullback_candidate'"
+                      [class.missing]="pullback.status === 'no_pullback'"
+                    >
+                      {{
+                        pullback.status === 'pullback_candidate'
+                          ? 'Pullback erkannt'
+                          : 'Kein Pullback'
+                      }}
+                    </span>
+                  } @else {
+                    –
+                  }
+                </td>
+
+                <!-- TRADINGVIEW -->
+                <td>
+                  <a
+                    [href]="tradingViewUrl(coin.market)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    TradingView
+                  </a>
+                </td>
+
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  } @else if (loading()) {
+
+    <!-- LOADING -->
+    <section class="panel empty">
+      <h2>Marktanalyse läuft</h2>
+      <p>Die 14 Coins werden analysiert.</p>
+    </section>
+
+  } @else {
+
+    <!-- EMPTY STATE -->
+    <section class="panel empty">
+      <h2>Scanner bereit</h2>
+      <p>
+        Klicke auf „Jetzt scannen“, um deine
+        14 Coins zu analysieren.
+      </p>
+    </section>
+
+  }
+
+  <!-- FOOTER -->
+  <footer>
+    Technische Marktanalyse – keine Kaufempfehlung.
+    Scanner-Strategie befindet sich in der Entwicklung.
+  </footer>
+
+</div>
+
+
+<!-- COIN DETAIL MODAL -->
+@if (selectedMarket(); as coin) {
+
+  <div
+    class="modal-backdrop"
+    (click)="closeModal()"
+  >
+
+    <section
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="coin-modal-title"
+      (click)="$event.stopPropagation()"
+    >
+
+      <!-- MODAL HEADER -->
+      <header class="modal-header">
+
+        <div>
+          <p class="subtitle">
+            COIN ANALYSIS
+          </p>
+
+          <h2 id="coin-modal-title">
+            {{ coin.market }}
+          </h2>
+
+          <p class="modal-description">
+            {{ coin.reason ?? 'Technische Marktanalyse' }}
+          </p>
+        </div>
+
+        <button
+          class="close-button"
+          type="button"
+          (click)="closeModal()"
+          aria-label="Detailanalyse schließen"
+        >
+          ×
+        </button>
+
+      </header>
+
+      <!-- COIN PRICE -->
+      <div class="modal-price">
+        <span>Aktueller EUR-Kurs</span>
+        <strong>{{ formatPrice(coin.market) }}</strong>
+      </div>
+
+      <!-- SCAN STATUS -->
+      <div class="modal-status">
+        <span
+          class="status"
+          [class]="coin.status"
+        >
+          {{ coin.status }}
+        </span>
+
+        <span>
+          {{ coin.checks_passed }}/{{ coin.checks_total }}
+          Kriterien erfüllt
+        </span>
+      </div>
+
+      <!-- TIMEFRAMES -->
+      <h3>Multi-Timeframe Analyse</h3>
+
+      @if (coin.timeframes; as timeframes) {
+        <div class="timeframe-grid">
+
+          @for (tf of ['1d', '4h', '1h']; track tf) {
+            <div class="timeframe-card">
+
+              <span class="tf-label">
+                {{ tf.toUpperCase() }}
+              </span>
+
+              <strong
+                [class.bullish]="timeframes[tf]?.trend === 'bullish'"
+                [class.bearish]="timeframes[tf]?.trend === 'bearish'"
+              >
+                {{ timeframes[tf]?.trend ?? '–' }}
+              </strong>
+
+              <span>
+                RSI14:
+                {{ timeframes[tf]?.rsi14 ?? '–' }}
+              </span>
+
+            </div>
+          }
+
+        </div>
+      } @else {
+        <p class="muted">
+          Keine Timeframe-Daten verfügbar.
+        </p>
+      }
+
+      <!-- STRATEGY CRITERIA -->
+      <h3>Strategie-Kriterien</h3>
+
+      <div class="check-list">
+
+        @for (check of coin.passed; track check) {
+          <div class="check-row">
+            <span class="passed">✓</span>
+            <span>{{ check }}</span>
+          </div>
+        }
+
+        @for (check of coin.missing; track check) {
+          <div class="check-row">
+            <span class="missing">✕</span>
+            <span>{{ check }}</span>
+          </div>
+        }
+
+        @if (
+          coin.passed.length === 0 &&
+          coin.missing.length === 0
+        ) {
+          <p class="muted">
+            Keine vollständigen Prüfergebnisse vorhanden.
+          </p>
+        }
+
+      </div>
+
+      <!-- PULLBACK ANALYSIS -->
+      <h3>4H-Pullback-Analyse</h3>
+
+      @if (coin.pullback; as pullback) {
+
+        <div class="pullback-panel">
+
+          <p>
+            Ergebnis:
+            <strong
+              [class.passed]="pullback.status === 'pullback_candidate'"
+              [class.missing]="pullback.status === 'no_pullback'"
+            >
+              {{
+                pullback.status === 'pullback_candidate'
+                  ? 'Pullback erkannt'
+                  : 'Kein bestätigter Pullback'
+              }}
+            </strong>
+          </p>
+
+          <!-- PULLBACK CHECKS -->
+          <div class="check-list">
+
+            @for (check of pullbackChecks; track check.key) {
+              <div class="check-row">
+
+                <span
+                  [class.passed]="pullback.checks[check.key] === true"
+                  [class.missing]="pullback.checks[check.key] === false"
+                >
+                  {{ pullback.checks[check.key] ? '✓' : '✕' }}
+                </span>
+
+                <span>
+                  {{ check.label }}
+                </span>
+
+              </div>
+            }
+
+          </div>
+
+          <!-- PULLBACK METRICS -->
+          <div class="pullback-metrics">
+
+            <div>
+              <span>Abstand zur EMA20</span>
+              <strong>
+                {{ pullback.ema_distance_atr }} ATR
+              </strong>
+            </div>
+
+            <div>
+              <span>Retracement</span>
+              <strong>
+                {{ pullback.retracement_atr }} ATR
+              </strong>
+            </div>
+
+            <div>
+              <span>Vorheriges Tief</span>
+              <strong>
+                {{ pullback.previous_range_low }}
+              </strong>
+            </div>
+
+            <div>
+              <span>Vorheriges Hoch</span>
+              <strong>
+                {{ pullback.previous_range_high }}
+              </strong>
+            </div>
+
+          </div>
+
+        </div>
+
+      } @else {
+        <p class="muted">
+          Keine Pullback-Daten verfügbar.
+        </p>
+      }
+
+      <!-- MODAL FOOTER -->
+      <div class="modal-footer">
+
+        <button
+          class="secondary-button"
+          type="button"
+          (click)="closeModal()"
+        >
+          Schließen
+        </button>
+
+        <a
+          class="chart-link"
+          [href]="tradingViewUrl(coin.market)"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          In TradingView öffnen ↗
+        </a>
+
+      </div>
+
+    </section>
+  </div>
+}

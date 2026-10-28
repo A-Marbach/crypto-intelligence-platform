@@ -1,0 +1,562 @@
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background: #0b1120;
+  color: #e2e8f0;
+  font-family: Inter, Arial, sans-serif;
+  line-height: 1.5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* DASHBOARD */
+
+.dashboard {
+  max-width: 1250px;
+  margin: 0 auto;
+  padding: 40px 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 32px;
+
+  h1 {
+    margin: 8px 0;
+    font-size: 32px;
+    line-height: 1.2;
+  }
+
+  p {
+    color: #94a3b8;
+  }
+}
+
+.subtitle {
+  margin: 0;
+  color: #38bdf8 !important;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.scan-button,
+.chart-link {
+  background: #2563eb;
+  color: #ffffff;
+  border: 0;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.scan-button:hover,
+.chart-link:hover {
+  background: #1d4ed8;
+}
+
+.scan-button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+/* SCAN INFORMATION */
+
+.scan-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.scan-status {
+  color: #4ade80;
+  font-weight: 500;
+}
+
+/* STATISTICS */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat,
+.panel {
+  background: #111c30;
+  border: 1px solid #243247;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.stat {
+  span {
+    display: block;
+    color: #94a3b8;
+    margin-bottom: 12px;
+  }
+
+  strong {
+    font-size: 30px;
+  }
+}
+
+/* MARKET TABLE */
+
+.panel {
+  margin-bottom: 24px;
+
+  h2 {
+    margin: 0 0 12px;
+  }
+}
+
+.panel-header {
+  margin-bottom: 20px;
+
+  p {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 14px;
+  }
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+
+  th,
+  td {
+    padding: 16px 12px;
+    border-bottom: 1px solid #243247;
+    white-space: nowrap;
+  }
+
+  th {
+    color: #94a3b8;
+    font-size: 13px;
+  }
+
+  tbody tr:hover {
+    background: #1e293b;
+  }
+
+  a {
+    color: #38bdf8;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.coin-button {
+  padding: 4px 0;
+  background: transparent;
+  border: 0;
+  color: #e2e8f0;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover {
+    color: #38bdf8;
+    text-decoration: underline;
+  }
+}
+
+/* STATUS */
+
+.status {
+  display: inline-block;
+  background: #334155;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+
+  &.candidate {
+    color: #4ade80;
+  }
+
+  &.watch {
+    color: #fbbf24;
+  }
+
+  &.skipped {
+    color: #94a3b8;
+  }
+
+  &.error {
+    color: #f87171;
+  }
+}
+
+.bullish,
+.passed {
+  color: #4ade80;
+}
+
+.bearish,
+.missing {
+  color: #f87171;
+}
+
+.muted {
+  color: #94a3b8;
+}
+
+
+/* EUR prices */
+
+.price-cell {
+  color: #e2e8f0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Price API warning */
+
+.price-warning {
+  margin-bottom: 24px;
+  padding: 14px 18px;
+  background: #422006;
+  border: 1px solid #92400e;
+  border-radius: 8px;
+  color: #fcd34d;
+  font-size: 14px;
+}
+
+/* Coin price inside modal */
+
+.modal-price {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: #0b1120;
+  border: 1px solid #243247;
+  border-radius: 10px;
+
+  span {
+    color: #94a3b8;
+    font-size: 13px;
+  }
+
+  strong {
+    color: #e2e8f0;
+    font-size: 24px;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+
+/* EMPTY AND ERROR STATES */
+
+.empty {
+  padding: 60px 24px;
+  text-align: center;
+}
+
+.error {
+  padding: 16px;
+  margin-bottom: 24px;
+  background: #450a0a;
+  color: #fca5a5;
+  border-radius: 8px;
+}
+
+footer {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+/* MODAL BACKDROP */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  background: rgba(2, 6, 23, 0.85);
+  backdrop-filter: blur(5px);
+}
+
+/* COIN DETAIL MODAL */
+
+.modal {
+  width: 100%;
+  max-width: 850px;
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  /* Dark-Mode-Scrollbalken */
+  scrollbar-width: thin;
+  scrollbar-color: #475569 #111c30;
+
+  padding: 32px;
+  background: #111c30;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+
+  h3 {
+    margin: 28px 0 16px;
+    font-size: 17px;
+  }
+}
+
+/* MODAL HEADER */
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+
+  h2 {
+    margin: 8px 0;
+    font-size: 28px;
+  }
+}
+
+.modal-description {
+  margin: 0;
+  color: #94a3b8;
+}
+
+.close-button {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  background: #1e293b;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover {
+    background: #334155;
+  }
+}
+
+.modal-status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 20px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* TIMEFRAME CARDS */
+
+.timeframe-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.timeframe-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  background: #0b1120;
+  border: 1px solid #243247;
+  border-radius: 10px;
+
+  strong {
+    font-size: 22px;
+    text-transform: capitalize;
+  }
+
+  > span:last-child {
+    color: #94a3b8;
+    font-size: 14px;
+  }
+}
+
+.tf-label {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+/* CHECKS */
+
+.check-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #0b1120;
+  border-radius: 8px;
+
+  > span:first-child {
+    font-weight: 700;
+    font-size: 17px;
+  }
+}
+
+/* PULLBACK */
+
+.pullback-panel {
+  padding: 20px;
+  background: #0b1120;
+  border: 1px solid #243247;
+  border-radius: 10px;
+
+  > p {
+    margin-top: 0;
+  }
+
+  .check-row {
+    background: #111c30;
+  }
+}
+
+.pullback-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 22px;
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    background: #111c30;
+    border: 1px solid #243247;
+    border-radius: 8px;
+  }
+
+  span {
+    color: #94a3b8;
+    font-size: 13px;
+  }
+
+  strong {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* MODAL FOOTER */
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid #243247;
+}
+
+.secondary-button {
+  padding: 12px 20px;
+  background: #1e293b;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: #334155;
+  }
+}
+
+.chart-link {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 800px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard {
+    padding: 24px 16px;
+  }
+
+  .header h1 {
+    font-size: 25px;
+  }
+
+  .modal-backdrop {
+    padding: 8px;
+  }
+
+  .modal {
+    max-height: calc(100dvh - 16px);
+    padding: 20px;
+  }
+
+  .timeframe-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pullback-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+
+    button,
+    a {
+      justify-content: center;
+      width: 100%;
+      text-align: center;
+    }
+  }
+}
