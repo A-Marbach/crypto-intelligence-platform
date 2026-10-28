@@ -3,7 +3,7 @@ import asyncio
 from decimal import Decimal, InvalidOperation
 
 import httpx
-
+from datetime import datetime, timezone
 from app.core.config import TRADING_PAIRS
 from app.services.bitvavo_service import get_market_candles
 from app.services.candle_service import validate_candles
@@ -87,6 +87,15 @@ async def analyze_market_timeframes(market: str) -> dict:
     analyses = {}
     four_hour_candles = None
 
+    # One fixed UTC timestamp for the entire analysis
+
+    CANDLE_PUBLICATION_BUFFER_MS = 60_000
+
+    analysis_now_ms = (
+    int(datetime.now(timezone.utc).timestamp() * 1000)
+    - CANDLE_PUBLICATION_BUFFER_MS
+)
+
     for interval in ("1d", "4h", "1h"):
         raw_candles = await get_market_candles(
             market=market,
@@ -94,15 +103,20 @@ async def analyze_market_timeframes(market: str) -> dict:
             limit=250,
         )
 
-        validated = validate_candles(raw_candles, interval)
+        validated = validate_candles(
+    raw_candles,
+    interval,
+    now_ms=analysis_now_ms,
+)
         candles = validated["candles"]
         quality = validated["quality"]
 
         if (
-            len(candles) < 200
-            or quality["invalid_count"] > 0
-            or quality["has_gaps"]
-        ):
+    len(candles) < 200
+    or quality["invalid_count"] > 0
+    or quality["has_gaps"]
+    or not quality["is_fresh"]
+):
             return {
                 "market": market,
                 "status": "skipped",
