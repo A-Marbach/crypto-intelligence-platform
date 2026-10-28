@@ -2,6 +2,8 @@
 import {
   Component,
   HostListener,
+  OnDestroy,
+  OnInit,
   inject,
   signal
 } from '@angular/core';
@@ -12,7 +14,9 @@ import {
   catchError,
   finalize,
   forkJoin,
-  of
+  interval,
+  of,
+  Subscription
 } from 'rxjs';
 
 import { ScannerService } from '../../core/services/scanner';
@@ -23,6 +27,8 @@ import {
   ScannerReport
 } from '../../shared/models/scanner.model';
 
+const SCAN_INTERVAL_MS = 15 * 60 * 1000;
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -30,14 +36,21 @@ import {
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss'
 })
-export class Dashboard {
+export class Dashboard implements OnInit, OnDestroy {
   private readonly scannerService = inject(ScannerService);
+
+  private autoScanSubscription?: Subscription;
+  private scanSubscription?: Subscription;
 
   readonly report = signal<ScannerReport | null>(null);
   readonly prices = signal<Record<string, CoinPrice>>({});
+
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly priceError = signal(false);
+
+  readonly autoScanEnabled = signal(true);
+  readonly nextScanAt = signal<Date | null>(null);
 
   readonly selectedMarket = signal<MarketReport | null>(null);
 
@@ -64,6 +77,45 @@ export class Dashboard {
     }
   ];
 
+  // Start scanner when dashboard opens
+  ngOnInit(): void {
+    this.runScan();
+    this.startAutoScanTimer();
+  }
+
+  // Clean up subscriptions
+  ngOnDestroy(): void {
+    this.autoScanSubscription?.unsubscribe();
+    this.scanSubscription?.unsubscribe();
+  }
+
+  // Automatic scanner every 15 minutes
+  private startAutoScanTimer(): void {
+    this.autoScanSubscription?.unsubscribe();
+
+    if (!this.autoScanEnabled()) {
+      this.nextScanAt.set(null);
+      return;
+    }
+
+    this.nextScanAt.set(
+      new Date(Date.now() + SCAN_INTERVAL_MS)
+    );
+
+    this.autoScanSubscription = interval(
+      SCAN_INTERVAL_MS
+    ).subscribe(() => {
+      if (this.autoScanEnabled()) {
+        this.runScan();
+
+        this.nextScanAt.set(
+          new Date(Date.now() + SCAN_INTERVAL_MS)
+        );
+      }
+    });
+  }
+
+  // Manual or automatic scan
   runScan(): void {
     if (this.loading()) {
       return;
@@ -73,7 +125,7 @@ export class Dashboard {
     this.error.set(null);
     this.priceError.set(false);
 
-    forkJoin({
+    this.scanSubscription = forkJoin({
       report: this.scannerService.runScan(),
       prices: this.scannerService.getPrices().pipe(
         catchError(() => {
@@ -82,7 +134,11 @@ export class Dashboard {
         })
       )
     })
-      .pipe(finalize(() => this.loading.set(false)))
+      .pipe(
+        finalize(() => {
+          this.loading.set(false);
+        })
+      )
       .subscribe({
         next: ({ report, prices }) => {
           this.report.set(report);
@@ -94,24 +150,54 @@ export class Dashboard {
           }
 
           this.prices.set(priceMap);
-          this.closeModal();
+
+          // Refresh the selected coin without closing the modal.
+          const selected = this.selectedMarket();
+
+          if (selected) {
+            const updatedMarket = report.markets.find(
+              market => market.market === selected.market
+            );
+
+            this.selectedMarket.set(updatedMarket ?? null);
+          }
         },
+
         error: () => {
           this.error.set(
-            'Scanner fehlgeschlagen. Bitte Backend prüfen.'
+            'Scanner fehlgeschlagen. Bitte FastAPI-Backend prüfen.'
           );
         }
       });
   }
 
+  // Enable or disable automatic scanning
+  toggleAutoScan(): void {
+    const enabled = !this.autoScanEnabled();
+
+    this.autoScanEnabled.set(enabled);
+
+    if (enabled) {
+      this.runScan();
+      this.startAutoScanTimer();
+    } else {
+      this.autoScanSubscription?.unsubscribe();
+      this.autoScanSubscription = undefined;
+      this.nextScanAt.set(null);
+    }
+  }
+
+  // Open detail modal
   selectMarket(market: MarketReport): void {
     this.selectedMarket.set(market);
   }
 
+  // Close detail modal
   closeModal(): void {
     this.selectedMarket.set(null);
   }
 
+  // Close modal with Escape
   @HostListener('document:keydown.escape')
   onEscape(): void {
     if (this.selectedMarket()) {
@@ -119,6 +205,7 @@ export class Dashboard {
     }
   }
 
+  // Format prices for the German locale
   formatPrice(market: string): string {
     const price = this.prices()[market];
 
@@ -150,6 +237,7 @@ export class Dashboard {
     }).format(value) + ' €';
   }
 
+  // TradingView chart for each Bitvavo market
   tradingViewUrl(market: string): string {
     const symbol = market.replace('-', '');
 

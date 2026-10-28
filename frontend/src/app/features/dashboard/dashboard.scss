@@ -46,6 +46,8 @@
   letter-spacing: 2px;
 }
 
+/* BUTTONS */
+
 .scan-button,
 .chart-link {
   background: #2563eb;
@@ -66,6 +68,69 @@
 .scan-button:disabled {
   opacity: 0.5;
   cursor: wait;
+}
+
+/* AUTOMATIC SCANNER */
+
+.auto-scanner-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  background: #111c30;
+  border: 1px solid #243247;
+  border-radius: 12px;
+}
+
+.auto-scanner-info {
+  h3 {
+    margin: 0 0 8px;
+    font-size: 17px;
+  }
+
+  p {
+    margin: 6px 0;
+    color: #94a3b8;
+    font-size: 13px;
+  }
+
+  strong {
+    color: #e2e8f0;
+  }
+}
+
+.auto-scanner-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.auto-scanner-status {
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+
+  &.active {
+    color: #4ade80;
+  }
+}
+
+.auto-toggle-button {
+  padding: 10px 16px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #e2e8f0;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: #334155;
+  }
 }
 
 /* SCAN INFORMATION */
@@ -228,8 +293,7 @@ table {
   color: #94a3b8;
 }
 
-
-/* EUR prices */
+/* EUR PRICES */
 
 .price-cell {
   color: #e2e8f0;
@@ -237,7 +301,7 @@ table {
   font-variant-numeric: tabular-nums;
 }
 
-/* Price API warning */
+/* WARNINGS */
 
 .price-warning {
   margin-bottom: 24px;
@@ -249,44 +313,19 @@ table {
   font-size: 14px;
 }
 
-/* Coin price inside modal */
-
-.modal-price {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 20px;
-  padding: 16px 20px;
-  background: #0b1120;
-  border: 1px solid #243247;
-  border-radius: 10px;
-
-  span {
-    color: #94a3b8;
-    font-size: 13px;
-  }
-
-  strong {
-    color: #e2e8f0;
-    font-size: 24px;
-    font-variant-numeric: tabular-nums;
-  }
-}
-
-
-/* EMPTY AND ERROR STATES */
-
-.empty {
-  padding: 60px 24px;
-  text-align: center;
-}
-
 .error {
   padding: 16px;
   margin-bottom: 24px;
   background: #450a0a;
   color: #fca5a5;
   border-radius: 8px;
+}
+
+/* EMPTY AND LOADING STATES */
+
+.empty {
+  padding: 60px 24px;
+  text-align: center;
 }
 
 footer {
@@ -318,7 +357,6 @@ footer {
   overflow-y: auto;
   overscroll-behavior: contain;
 
-  /* Dark-Mode-Scrollbalken */
   scrollbar-width: thin;
   scrollbar-color: #475569 #111c30;
 
@@ -369,6 +407,32 @@ footer {
     background: #334155;
   }
 }
+
+/* MODAL PRICE */
+
+.modal-price {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: #0b1120;
+  border: 1px solid #243247;
+  border-radius: 10px;
+
+  span {
+    color: #94a3b8;
+    font-size: 13px;
+  }
+
+  strong {
+    color: #e2e8f0;
+    font-size: 24px;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* MODAL STATUS */
 
 .modal-status {
   display: flex;
@@ -532,6 +596,16 @@ footer {
     font-size: 25px;
   }
 
+  .auto-scanner-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .auto-scanner-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .modal-backdrop {
     padding: 8px;
   }
@@ -557,6 +631,300 @@ footer {
       justify-content: center;
       width: 100%;
       text-align: center;
+    }
+  }
+}
+
+
+
+/* ==========================================
+   DASHBOARD V7 - SIMPLE TRADING OVERVIEW
+   ========================================== */
+
+/* THREE MAIN STATUS CARDS */
+
+.simple-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.simple-stat {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  background: #111c30;
+  border: 1px solid #243247;
+  border-radius: 12px;
+
+  .stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    margin-bottom: 16px;
+    border-radius: 9px;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  strong {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 36px;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+
+  h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+}
+
+/* GREEN - SETUP TO REVIEW */
+
+.setup-stat {
+  border-color: #166534;
+
+  .stat-icon {
+    background: #14532d;
+    color: #4ade80;
+  }
+
+  > strong {
+    color: #4ade80;
+  }
+}
+
+/* YELLOW - WATCHLIST */
+
+.watch-stat {
+  border-color: #854d0e;
+
+  .stat-icon {
+    background: #422006;
+    color: #fbbf24;
+  }
+
+  > strong {
+    color: #fbbf24;
+  }
+}
+
+/* GRAY - UNAVAILABLE */
+
+.skip-stat {
+  .stat-icon {
+    background: #334155;
+    color: #cbd5e1;
+  }
+
+  > strong {
+    color: #cbd5e1;
+  }
+}
+
+/* ==========================================
+   SIMPLIFIED COIN TABLE
+   ========================================== */
+
+.simple-market-table {
+  width: 100%;
+
+  th,
+  td {
+    padding: 18px 16px;
+    vertical-align: middle;
+  }
+
+  td:first-child {
+    font-weight: 700;
+  }
+
+  tbody tr {
+    transition: background 0.15s ease;
+  }
+
+  tbody tr:hover {
+    background: #1e293b;
+  }
+}
+
+/* ==========================================
+   SIMPLE STATUS LABELS
+   ========================================== */
+
+.simple-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  /* GREEN */
+  &.setup {
+    background: #14532d;
+    color: #4ade80;
+    border: 1px solid #166534;
+  }
+
+  /* YELLOW */
+  &.watching {
+    background: #422006;
+    color: #fbbf24;
+    border: 1px solid #854d0e;
+  }
+
+  /* GRAY */
+  &.unavailable {
+    background: #334155;
+    color: #cbd5e1;
+    border: 1px solid #475569;
+  }
+}
+
+/* ==========================================
+   COIN DETAILS BUTTON
+   ========================================== */
+
+.details-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #38bdf8;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+
+  &:hover {
+    background: #334155;
+    border-color: #475569;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #38bdf8;
+    outline-offset: 3px;
+  }
+}
+
+/* ==========================================
+   SCANNER EXPLANATION
+   ========================================== */
+
+.scanner-explanation {
+  margin-bottom: 30px;
+  padding: 24px;
+  background: #111c30;
+  border: 1px solid #243247;
+  border-radius: 12px;
+
+  h3 {
+    margin: 0 0 16px;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 10px 0;
+    color: #94a3b8;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  strong {
+    color: #e2e8f0;
+    font-weight: 600;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - TABLET
+   ========================================== */
+
+@media (max-width: 900px) {
+  .simple-stats {
+    grid-template-columns: repeat(
+      2,
+      minmax(0, 1fr)
+    );
+  }
+
+  .simple-stat:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE - MOBILE
+   ========================================== */
+
+@media (max-width: 600px) {
+  .simple-stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .simple-stat:last-child {
+    grid-column: auto;
+  }
+
+  .simple-stat {
+    padding: 18px;
+
+    strong {
+      font-size: 30px;
+    }
+
+    h3 {
+      font-size: 16px;
+    }
+  }
+
+  .simple-market-table {
+    th,
+    td {
+      padding: 14px 12px;
+    }
+  }
+
+  .simple-status {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .details-button {
+    padding: 9px 12px;
+  }
+
+  .scanner-explanation {
+    padding: 18px;
+
+    h3 {
+      font-size: 16px;
     }
   }
 }

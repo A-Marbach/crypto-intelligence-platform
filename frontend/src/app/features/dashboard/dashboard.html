@@ -6,7 +6,7 @@
     <div>
       <p class="subtitle">CRYPTO MARKET ANALYSIS</p>
       <h1>Crypto Intelligence Platform</h1>
-      <p>Multi-Timeframe Scanner · 1D / 4H / 1H</p>
+      <p>Dein automatischer Krypto-Markt-Scanner</p>
     </div>
 
     <button
@@ -15,7 +15,7 @@
       (click)="runScan()"
       [disabled]="loading()"
     >
-      {{ loading() ? 'Scanne...' : 'Jetzt scannen' }}
+      {{ loading() ? 'Analysiere...' : 'Jetzt aktualisieren' }}
     </button>
   </header>
 
@@ -29,16 +29,67 @@
   @if (priceError()) {
     <div class="price-warning" role="status">
       EUR-Kurse momentan nicht verfügbar.
-      Die technische Scanner-Analyse funktioniert weiterhin.
+      Die technische Analyse funktioniert weiterhin.
     </div>
   }
+
+  <!-- AUTOMATIC SCANNER -->
+  <section class="auto-scanner-panel">
+
+    <div class="auto-scanner-info">
+      <h3>Automatischer Scanner</h3>
+
+      <p>
+        @if (autoScanEnabled()) {
+          Deine Coins werden alle 15 Minuten automatisch geprüft.
+        } @else {
+          Automatische Aktualisierung ist ausgeschaltet.
+        }
+      </p>
+
+      @if (nextScanAt(); as nextScan) {
+        <p>
+          Nächster geplanter Scan:
+          <strong>
+            {{ nextScan | date:'HH:mm:ss' }}
+          </strong>
+        </p>
+      }
+    </div>
+
+    <div class="auto-scanner-actions">
+      <span
+        class="auto-scanner-status"
+        [class.active]="autoScanEnabled()"
+      >
+        {{
+          autoScanEnabled()
+            ? 'Automatik aktiv'
+            : 'Automatik aus'
+        }}
+      </span>
+
+      <button
+        type="button"
+        class="auto-toggle-button"
+        (click)="toggleAutoScan()"
+      >
+        {{
+          autoScanEnabled()
+            ? 'Ausschalten'
+            : 'Einschalten'
+        }}
+      </button>
+    </div>
+
+  </section>
 
   @if (report(); as data) {
 
     <!-- SCAN INFORMATION -->
     <div class="scan-info">
       <span>
-        Letzter Report:
+        Letzte Analyse:
         {{ data.generated_at | date:'dd.MM.yyyy HH:mm:ss' }}
       </span>
 
@@ -46,62 +97,72 @@
         @if (loading()) {
           Aktualisierung läuft...
         } @else if (error()) {
-          Letzter erfolgreicher Report
+          Letzte erfolgreiche Analyse
         } @else {
-          Scan abgeschlossen
+          Analyse abgeschlossen
         }
       </span>
     </div>
 
-    <!-- STATISTICS -->
-    <section class="stats">
-      <div class="stat">
-        <span>Analysierte Coins</span>
-        <strong>{{ data.summary.scanned }}</strong>
-      </div>
+    <!-- SIMPLE STATUS OVERVIEW -->
+    <section class="simple-stats">
 
-      <div class="stat">
-        <span>Kandidaten</span>
+      <div class="simple-stat setup-stat">
+        <span class="stat-icon">✓</span>
         <strong>{{ data.summary.candidates }}</strong>
+        <h3>Setup prüfen</h3>
+        <p>
+          Alle 5 Bedingungen erfüllt.
+          Chart manuell überprüfen.
+        </p>
       </div>
 
-      <div class="stat">
-        <span>Beobachten</span>
+      <div class="simple-stat watch-stat">
+        <span class="stat-icon">◉</span>
         <strong>{{ data.summary.watch }}</strong>
+        <h3>Beobachten</h3>
+        <p>
+          Noch kein vollständiges Setup.
+          Auf bessere Bedingungen warten.
+        </p>
       </div>
 
-      <div class="stat">
-        <span>Übersprungen</span>
-        <strong>{{ data.summary.skipped }}</strong>
+      <div class="simple-stat skip-stat">
+        <span class="stat-icon">×</span>
+        <strong>
+          {{ data.summary.skipped + data.summary.errors }}
+        </strong>
+        <h3>Nicht auswertbar</h3>
+        <p>
+          Daten fehlen oder die Analyse
+          konnte nicht abgeschlossen werden.
+        </p>
       </div>
+
     </section>
 
-    <!-- MARKET SCANNER -->
+    <!-- SIMPLE MARKET TABLE -->
     <section class="panel">
 
       <div class="panel-header">
         <div>
-          <h2>Market Scanner</h2>
+          <h2>Deine Coins</h2>
           <p>
-            Klicke auf einen Coin, um seine Detailanalyse zu öffnen.
+            Grün bedeutet: Setup genauer prüfen.
+            Gelb bedeutet: Weiter beobachten.
           </p>
         </div>
       </div>
 
       <div class="table-wrapper">
-        <table>
+        <table class="simple-market-table">
+
           <thead>
             <tr>
               <th>Coin</th>
-              <th>Kurs (EUR)</th>
-              <th>Status</th>
-              <th>Kriterien</th>
-              <th>1D Trend</th>
-              <th>4H Trend</th>
-              <th>1H Trend</th>
-              <th>RSI 1H</th>
-              <th>4H Pullback</th>
-              <th>Chart</th>
+              <th>Aktueller Kurs</th>
+              <th>Einschätzung</th>
+              <th>Analyse</th>
             </tr>
           </thead>
 
@@ -111,126 +172,107 @@
 
                 <!-- COIN -->
                 <td>
-                  <button
-                    type="button"
-                    class="coin-button"
-                    (click)="selectMarket(coin)"
-                    [attr.aria-label]="'Detailanalyse für ' + coin.market + ' öffnen'"
-                  >
-                    {{ coin.market }}
-                  </button>
+                  <strong>{{ coin.market }}</strong>
                 </td>
 
-                <!-- EUR PRICE -->
+                <!-- PRICE -->
                 <td class="price-cell">
                   {{ formatPrice(coin.market) }}
                 </td>
 
-                <!-- STATUS -->
+                <!-- SIMPLE RECOMMENDATION -->
                 <td>
-                  <span
-                    class="status"
-                    [class]="coin.status"
-                  >
-                    {{ coin.status }}
-                  </span>
-                </td>
+                  @switch (coin.status) {
 
-                <!-- STRATEGY CHECKS -->
-                <td>
-                  {{ coin.checks_passed }}/{{ coin.checks_total }}
-                </td>
+                    @case ('candidate') {
+                      <span class="simple-status setup">
+                        ✓ Setup prüfen
+                      </span>
+                    }
 
-                <!-- DAILY TREND -->
-                <td
-                  [class.bullish]="coin.timeframes?.['1d']?.trend === 'bullish'"
-                  [class.bearish]="coin.timeframes?.['1d']?.trend === 'bearish'"
-                >
-                  {{ coin.timeframes?.['1d']?.trend ?? '–' }}
-                </td>
+                    @case ('watch') {
+                      <span class="simple-status watching">
+                        ◉ Beobachten
+                      </span>
+                    }
 
-                <!-- 4H TREND -->
-                <td
-                  [class.bullish]="coin.timeframes?.['4h']?.trend === 'bullish'"
-                  [class.bearish]="coin.timeframes?.['4h']?.trend === 'bearish'"
-                >
-                  {{ coin.timeframes?.['4h']?.trend ?? '–' }}
-                </td>
+                    @case ('skipped') {
+                      <span class="simple-status unavailable">
+                        × Daten fehlen
+                      </span>
+                    }
 
-                <!-- 1H TREND -->
-                <td
-                  [class.bullish]="coin.timeframes?.['1h']?.trend === 'bullish'"
-                  [class.bearish]="coin.timeframes?.['1h']?.trend === 'bearish'"
-                >
-                  {{ coin.timeframes?.['1h']?.trend ?? '–' }}
-                </td>
+                    @case ('error') {
+                      <span class="simple-status unavailable">
+                        × Analysefehler
+                      </span>
+                    }
 
-                <!-- RSI -->
-                <td>
-                  {{ coin.timeframes?.['1h']?.rsi14 ?? '–' }}
-                </td>
-
-                <!-- PULLBACK -->
-                <td>
-                  @if (coin.pullback; as pullback) {
-                    <span
-                      [class.passed]="pullback.status === 'pullback_candidate'"
-                      [class.missing]="pullback.status === 'no_pullback'"
-                    >
-                      {{
-                        pullback.status === 'pullback_candidate'
-                          ? 'Pullback erkannt'
-                          : 'Kein Pullback'
-                      }}
-                    </span>
-                  } @else {
-                    –
                   }
                 </td>
 
-                <!-- TRADINGVIEW -->
+                <!-- OPEN DETAILS -->
                 <td>
-                  <a
-                    [href]="tradingViewUrl(coin.market)"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    type="button"
+                    class="details-button"
+                    (click)="selectMarket(coin)"
+                    [attr.aria-label]="'Analyse für ' + coin.market + ' öffnen'"
                   >
-                    TradingView
-                  </a>
+                    Details ansehen
+                  </button>
                 </td>
 
               </tr>
             }
           </tbody>
+
         </table>
       </div>
+
+    </section>
+
+    <!-- EXPLANATION -->
+    <section class="scanner-explanation">
+      <h3>Wann solltest du einen Coin prüfen?</h3>
+
+      <p>
+        Sobald ein Coin als
+        <strong>„Setup prüfen“</strong>
+        erscheint, sind alle fünf technischen
+        Scanner-Bedingungen erfüllt.
+      </p>
+
+      <p>
+        Öffne dann TradingView und überprüfe
+        Einstieg, Stop-Loss und Take-Profit.
+        Der Scanner gibt keine automatische Kaufempfehlung.
+      </p>
     </section>
 
   } @else if (loading()) {
 
-    <!-- LOADING -->
     <section class="panel empty">
       <h2>Marktanalyse läuft</h2>
-      <p>Die 14 Coins werden analysiert.</p>
+      <p>
+        Deine 14 Coins werden automatisch überprüft.
+      </p>
     </section>
 
   } @else {
 
-    <!-- EMPTY STATE -->
     <section class="panel empty">
       <h2>Scanner bereit</h2>
       <p>
-        Klicke auf „Jetzt scannen“, um deine
-        14 Coins zu analysieren.
+        Die Marktanalyse startet automatisch.
       </p>
     </section>
 
   }
 
-  <!-- FOOTER -->
   <footer>
     Technische Marktanalyse – keine Kaufempfehlung.
-    Scanner-Strategie befindet sich in der Entwicklung.
+    Die Strategie befindet sich noch in der Testphase.
   </footer>
 
 </div>
@@ -256,9 +298,7 @@
       <header class="modal-header">
 
         <div>
-          <p class="subtitle">
-            COIN ANALYSIS
-          </p>
+          <p class="subtitle">COIN ANALYSIS</p>
 
           <h2 id="coin-modal-title">
             {{ coin.market }}
@@ -288,12 +328,26 @@
 
       <!-- SCAN STATUS -->
       <div class="modal-status">
-        <span
-          class="status"
-          [class]="coin.status"
-        >
-          {{ coin.status }}
-        </span>
+
+        @switch (coin.status) {
+          @case ('candidate') {
+            <span class="simple-status setup">
+              Setup prüfen
+            </span>
+          }
+
+          @case ('watch') {
+            <span class="simple-status watching">
+              Beobachten
+            </span>
+          }
+
+          @default {
+            <span class="simple-status unavailable">
+              Nicht auswertbar
+            </span>
+          }
+        }
 
         <span>
           {{ coin.checks_passed }}/{{ coin.checks_total }}
@@ -305,9 +359,11 @@
       <h3>Multi-Timeframe Analyse</h3>
 
       @if (coin.timeframes; as timeframes) {
+
         <div class="timeframe-grid">
 
           @for (tf of ['1d', '4h', '1h']; track tf) {
+
             <div class="timeframe-card">
 
               <span class="tf-label">
@@ -327,9 +383,11 @@
               </span>
 
             </div>
+
           }
 
         </div>
+
       } @else {
         <p class="muted">
           Keine Timeframe-Daten verfügbar.
@@ -387,17 +445,21 @@
             </strong>
           </p>
 
-          <!-- PULLBACK CHECKS -->
           <div class="check-list">
 
             @for (check of pullbackChecks; track check.key) {
+
               <div class="check-row">
 
                 <span
                   [class.passed]="pullback.checks[check.key] === true"
                   [class.missing]="pullback.checks[check.key] === false"
                 >
-                  {{ pullback.checks[check.key] ? '✓' : '✕' }}
+                  {{
+                    pullback.checks[check.key]
+                      ? '✓'
+                      : '✕'
+                  }}
                 </span>
 
                 <span>
@@ -405,6 +467,7 @@
                 </span>
 
               </div>
+
             }
 
           </div>
@@ -473,5 +536,7 @@
       </div>
 
     </section>
+
   </div>
+
 }
