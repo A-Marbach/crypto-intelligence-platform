@@ -1,4 +1,9 @@
 
+import asyncio
+import httpx
+
+from app.core.config import TRADING_PAIRS
+
 from decimal import Decimal, InvalidOperation
 from app.services.bitvavo_service import get_market_candles
 from app.services.candle_service import validate_candles
@@ -137,4 +142,65 @@ async def analyze_market_timeframes(market: str) -> dict:
         "market": market,
         **evaluation,
         "timeframes": analyses,
+    }
+
+
+
+async def scan_all_timeframes() -> dict:
+    """
+    Scan all watchlist markets on 1D, 4H and 1H.
+
+    Returns candidates for manual TradingView analysis.
+    No orders are executed.
+    """
+    semaphore = asyncio.Semaphore(4)
+
+    async def scan_one(market: str) -> dict:
+        async with semaphore:
+            try:
+                return await analyze_market_timeframes(market)
+            except (
+                httpx.HTTPError,
+                ValueError,
+                TypeError,
+                KeyError,
+                IndexError,
+                ZeroDivisionError,
+            ):
+                return {
+                    "market": market,
+                    "status": "error",
+                    "reason": "Multi-timeframe analysis failed",
+                }
+
+    results = await asyncio.gather(
+        *(scan_one(market) for market in TRADING_PAIRS)
+    )
+
+    candidates = [
+        item
+        for item in results
+        if item["status"] == "candidate"
+    ]
+
+    # Preliminary ranking: proximity to the 4H EMA20.
+    # This does not measure expected profitability.
+    candidates.sort(
+        key=lambda item: Decimal(item["ema20_distance_atr"])
+    )
+
+    return {
+        "scanned": len(results),
+        "candidate_count": len(candidates),
+        "watch_count": sum(
+            item["status"] == "watch" for item in results
+        ),
+        "skipped_count": sum(
+            item["status"] == "skipped" for item in results
+        ),
+        "error_count": sum(
+            item["status"] == "error" for item in results
+        ),
+        "top_candidates": candidates[:3],
+        "results": results,
     }
