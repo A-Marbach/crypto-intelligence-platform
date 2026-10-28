@@ -3,6 +3,11 @@ from app.services.multi_timeframe_service import (
     evaluate_timeframes,
 )
 
+from unittest.mock import AsyncMock, patch
+import asyncio
+
+from app.services.multi_timeframe_service import analyze_market_timeframes
+
 
 def make_data():
     daily = {"trend": "bullish"}
@@ -69,3 +74,49 @@ def test_invalid_atr():
         pass
     else:
         raise AssertionError("Expected ValueError")
+
+
+
+def test_no_pullback_prevents_candidate():
+    candles = [
+        {
+            "timestamp": i * 3_600_000,
+            "open": str(100 + i),
+            "high": str(110 + i),
+            "low": str(90 + i),
+            "close": str(100 + i),
+            "volume": "10",
+        }
+        for i in range(250)
+    ]
+
+    quality = {
+        "valid_count": 250,
+        "invalid_count": 0,
+        "unfinished_count": 0,
+        "missing_count": 0,
+        "has_gaps": False,
+    }
+
+    with (
+        patch(
+            "app.services.multi_timeframe_service.get_market_candles",
+            new_callable=AsyncMock,
+            return_value=candles,
+        ),
+        patch(
+            "app.services.multi_timeframe_service.validate_candles",
+            return_value={"candles": candles, "quality": quality},
+        ),
+        patch(
+            "app.services.multi_timeframe_service.detect_pullback",
+            return_value={
+                "status": "no_pullback",
+                "checks": {},
+            },
+        ),
+    ):
+        result = asyncio.run(analyze_market_timeframes("BTC-EUR"))
+
+    assert result["status"] == "watch"
+    assert result["checks"]["four_hour_pullback"] is False

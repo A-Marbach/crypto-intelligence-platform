@@ -5,7 +5,7 @@ from app.services.multi_timeframe_service import scan_all_timeframes
 CHECK_LABELS = {
     "daily_bullish": "1D trend bullish",
     "four_hour_bullish": "4H trend bullish",
-    "near_4h_ema20": "4H price near EMA20",
+    "four_hour_pullback": "4H pullback pattern detected",
     "hourly_bullish": "1H trend bullish",
     "hourly_rsi_above_50": "1H RSI above 50",
 }

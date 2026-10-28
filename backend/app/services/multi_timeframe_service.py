@@ -1,17 +1,18 @@
 
 import asyncio
+from decimal import Decimal, InvalidOperation
+
 import httpx
 
 from app.core.config import TRADING_PAIRS
-
-from decimal import Decimal, InvalidOperation
 from app.services.bitvavo_service import get_market_candles
 from app.services.candle_service import validate_candles
 from app.services.indicator_service import (
     analyze_trend,
-    calculate_rsi,
     calculate_atr,
+    calculate_rsi,
 )
+from app.services.pullback_service import detect_pullback
 
 
 def evaluate_timeframes(
@@ -20,9 +21,9 @@ def evaluate_timeframes(
     hourly: dict,
 ) -> dict:
     """
-    Evaluate a multi-timeframe watchlist candidate.
+    Evaluate multi-timeframe conditions.
 
-    Inputs must come from validated, completed candles.
+    Input data must come from validated, completed candles.
     This is a screening heuristic, not a trade signal.
     """
     try:
@@ -35,63 +36,56 @@ def evaluate_timeframes(
         atr_4h = Decimal(str(four_hour["atr14"]))
         rsi_1h = Decimal(str(hourly["rsi14"]))
 
-        if not all(
-            v.is_finite()
-            for v in (price_4h, ema20_4h, atr_4h, rsi_1h)
-        ):
+        values = (price_4h, ema20_4h, atr_4h, rsi_1h)
+
+        if not all(value.is_finite() for value in values):
             raise ValueError("Non-finite indicator")
 
         if (
             price_4h <= 0
             or ema20_4h <= 0
             or atr_4h <= 0
-            or not 0 <= rsi_1h <= 100
+            or not Decimal("0") <= rsi_1h <= Decimal("100")
         ):
             raise ValueError("Invalid indicator values")
 
     except (KeyError, InvalidOperation, TypeError) as exc:
         raise ValueError("Invalid timeframe data") from exc
 
-    # Proximity to EMA20: preliminary pullback heuristic
-    ema_distance_atr = (
-        abs(price_4h - ema20_4h) / atr_4h
-    )
-
-    pullback_zone = ema_distance_atr <= Decimal("1")
-    momentum_confirmed = rsi_1h > Decimal("50")
+    ema_distance_atr = abs(price_4h - ema20_4h) / atr_4h
 
     checks = {
         "daily_bullish": daily_bullish,
         "four_hour_bullish": four_hour_bullish,
-        "near_4h_ema20": pullback_zone,
+        "near_4h_ema20": ema_distance_atr <= Decimal("1"),
         "hourly_bullish": hourly_bullish,
-        "hourly_rsi_above_50": momentum_confirmed,
+        "hourly_rsi_above_50": rsi_1h > Decimal("50"),
     }
 
-    if all(checks.values()):
-        status = "candidate"
-        reason = "Multi-timeframe conditions aligned"
-    else:
-        status = "watch"
-        reason = "Multi-timeframe conditions not fully met"
+    status = "candidate" if all(checks.values()) else "watch"
 
     return {
         "status": status,
-        "reason": reason,
-        "checks": checks,
-        "ema20_distance_atr": str(
-            round(ema_distance_atr, 2)
+        "reason": (
+            "Multi-timeframe conditions aligned"
+            if status == "candidate"
+            else "Multi-timeframe conditions not fully met"
         ),
+        "checks": checks,
+        "ema20_distance_atr": str(round(ema_distance_atr, 2)),
         "rsi_1h": str(rsi_1h),
     }
 
 
 async def analyze_market_timeframes(market: str) -> dict:
     """
-    Analyze daily, 4-hour and 1-hour market conditions.
-    Does not execute trades.
+    Analyze daily, 4-hour and 1-hour conditions
+    including a preliminary 4H pullback pattern.
+
+    No trades are executed.
     """
     analyses = {}
+    four_hour_candles = None
 
     for interval in ("1d", "4h", "1h"):
         raw_candles = await get_market_candles(
@@ -100,11 +94,7 @@ async def analyze_market_timeframes(market: str) -> dict:
             limit=250,
         )
 
-        validated = validate_candles(
-            raw_candles,
-            interval,
-        )
-
+        validated = validate_candles(raw_candles, interval)
         candles = validated["candles"]
         quality = validated["quality"]
 
@@ -119,6 +109,9 @@ async def analyze_market_timeframes(market: str) -> dict:
                 "reason": f"Insufficient {interval} candle quality",
                 "quality": quality,
             }
+
+        if interval == "4h":
+            four_hour_candles = candles
 
         trend = analyze_trend(candles)
         closes = [candle["close"] for candle in candles]
@@ -138,17 +131,39 @@ async def analyze_market_timeframes(market: str) -> dict:
         hourly=analyses["1h"],
     )
 
+    pullback = detect_pullback(four_hour_candles)
+
+    # Replace simple EMA proximity with pullback detection.
+    evaluation["checks"].pop("near_4h_ema20", None)
+
+    evaluation["checks"]["four_hour_pullback"] = (
+        pullback["status"] == "pullback_candidate"
+    )
+
+    # A candidate must satisfy every required condition.
+    candidate = all(evaluation["checks"].values())
+
+    evaluation["status"] = (
+        "candidate" if candidate else "watch"
+    )
+
+    evaluation["reason"] = (
+        "Multi-timeframe trend and pullback conditions aligned"
+        if candidate
+        else "Multi-timeframe conditions not fully met"
+    )
+
     return {
         "market": market,
         **evaluation,
+        "pullback": pullback,
         "timeframes": analyses,
     }
 
 
-
 async def scan_all_timeframes() -> dict:
     """
-    Scan all watchlist markets on 1D, 4H and 1H.
+    Analyze all 14 watchlist markets.
 
     Returns candidates for manual TradingView analysis.
     No orders are executed.
@@ -159,6 +174,7 @@ async def scan_all_timeframes() -> dict:
         async with semaphore:
             try:
                 return await analyze_market_timeframes(market)
+
             except (
                 httpx.HTTPError,
                 ValueError,
@@ -183,8 +199,8 @@ async def scan_all_timeframes() -> dict:
         if item["status"] == "candidate"
     ]
 
-    # Preliminary ranking: proximity to the 4H EMA20.
-    # This does not measure expected profitability.
+    # Preliminary ranking: 4H EMA20 proximity.
+    # This is not a profitability score.
     candidates.sort(
         key=lambda item: Decimal(item["ema20_distance_atr"])
     )
@@ -193,13 +209,16 @@ async def scan_all_timeframes() -> dict:
         "scanned": len(results),
         "candidate_count": len(candidates),
         "watch_count": sum(
-            item["status"] == "watch" for item in results
+            item["status"] == "watch"
+            for item in results
         ),
         "skipped_count": sum(
-            item["status"] == "skipped" for item in results
+            item["status"] == "skipped"
+            for item in results
         ),
         "error_count": sum(
-            item["status"] == "error" for item in results
+            item["status"] == "error"
+            for item in results
         ),
         "top_candidates": candidates[:3],
         "results": results,

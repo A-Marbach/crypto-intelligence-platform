@@ -16,10 +16,10 @@ def test_report_shows_missing_conditions():
                 "reason": "Conditions not fully met",
                 "checks": {
                     "daily_bullish": False,
-                    "four_hour_bullish": False,
-                    "near_4h_ema20": True,
-                    "hourly_bullish": True,
-                    "hourly_rsi_above_50": True,
+    "four_hour_bullish": False,
+    "four_hour_pullback": True,
+    "hourly_bullish": True,
+    "hourly_rsi_above_50": True,
                 },
                 "timeframes": {
                     "1h": {
