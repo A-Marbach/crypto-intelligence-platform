@@ -1,0 +1,267 @@
+
+<div class="portfolio-page">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">C</div>
+      <div class="brand-text">
+        <strong>CRYPTO INTELLIGENCE</strong>
+        <span>PERSONAL TRADING DASHBOARD</span>
+      </div>
+    </div>
+
+    <div class="connection-status">
+      <span
+        class="status-dot"
+        [class.offline]="error()"
+      ></span>
+
+      {{ error() ? 'Verbindung gestört'
+        : lastUpdated() ? 'Verbunden'
+        : 'Verbinde...' }}
+    </div>
+  </header>
+
+  <main class="dashboard-content">
+
+    <section class="welcome">
+      <div>
+        <p class="eyebrow">MEIN PORTFOLIO</p>
+        <h1>Trading Dashboard<span class="accent">.</span></h1>
+        <p class="subtitle">
+          Dein Kontostand und deine Trades auf einen Blick.
+        </p>
+      </div>
+
+      <span class="update-info">
+        @if (lastUpdated(); as updated) {
+          <span class="sync-symbol">↻</span>
+          Aktualisiert: {{ updated | date:'HH:mm:ss' }}
+        } @else {
+          Daten werden geladen...
+        }
+      </span>
+    </section>
+
+    @if (error()) {
+      <div class="alert">{{ error() }}</div>
+    }
+
+    @if (portfolio(); as data) {
+
+      <!-- VIER ÜBERSICHTSKARTEN -->
+      <section class="overview">
+
+        <article class="main-card">
+          <div class="card-heading">
+            <span>GESAMTVERMÖGEN</span>
+            <span class="currency-tag">EUR</span>
+          </div>
+
+          <div class="main-amount">
+            @if (data.total_value_eur !== null) {
+              {{ data.total_value_eur
+                | currency:'EUR':'symbol':'1.2-2' }}
+            } @else {
+              —
+            }
+          </div>
+
+          <p class="card-description">
+            Gesamtwert aller Coins und Euro-Guthaben
+          </p>
+        </article>
+
+        <article class="cash-card">
+          <div class="card-heading">
+            <span>VERFÜGBARES TRADINGKAPITAL</span>
+            <span class="currency-tag">EUR</span>
+          </div>
+
+          <div class="main-amount">
+            {{ data.eur_available
+              | currency:'EUR':'symbol':'1.2-2' }}
+          </div>
+
+          <p class="card-description">
+            Sofort für neue Spot-Käufe verfügbar
+          </p>
+        </article>
+
+        <article class="result-card">
+          <span class="card-title">
+            Offener Gewinn / Verlust
+          </span>
+
+          @if (pnl(); as result) {
+            @if (result.unrealized_pnl_eur !== null) {
+              <strong
+                class="result-value"
+                [class.positive]="+result.unrealized_pnl_eur > 0"
+                [class.negative]="+result.unrealized_pnl_eur < 0"
+              >
+                {{ result.unrealized_pnl_eur
+                  | currency:'EUR':'symbol':'1.2-2' }}
+              </strong>
+            } @else {
+              <strong class="result-value">—</strong>
+            }
+          } @else {
+            <strong class="result-value">—</strong>
+          }
+
+          <small>
+            Aktuelle, noch nicht verkaufte Positionen
+          </small>
+        </article>
+
+        <article class="result-card">
+          <span class="card-title">
+            Realisierter Gewinn / Verlust
+          </span>
+
+          @if (pnl(); as result) {
+            <strong
+              class="result-value"
+              [class.positive]="+result.realized_pnl_eur > 0"
+              [class.negative]="+result.realized_pnl_eur < 0"
+            >
+              {{ result.realized_pnl_eur
+                | currency:'EUR':'symbol':'1.2-2' }}
+            </strong>
+          } @else {
+            <strong class="result-value">—</strong>
+          }
+
+          <small>
+            Abgeschlossene Verkäufe nach Gebühren
+          </small>
+        </article>
+
+      </section>
+
+      @if (pnlError()) {
+        <p class="alert">{{ pnlError() }}</p>
+      }
+
+      @if (!data.valuation_complete) {
+        <p class="alert">
+          Für folgende Coins fehlen Kurse:
+          {{ data.missing_prices.join(', ') }}
+        </p>
+      }
+
+      <!-- BESTÄNDE -->
+      <section class="assets-panel">
+
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">MEINE BESTÄNDE</p>
+            <h2>Meine Kryptowährungen</h2>
+            <p class="panel-description">
+              Dein gesamtes Portfolio in Euro bewertet
+            </p>
+          </div>
+
+          <span class="panel-label">BITVAVO</span>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>COIN</th>
+                <th>BESTAND</th>
+                <th>KURS</th>
+                <th class="right">WERT IN EUR</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (asset of data.assets; track asset.symbol) {
+                <tr>
+                  <td>
+                    <div class="coin-cell">
+
+                      <span
+                        class="coin-icon"
+                        [class.btc]="asset.symbol === 'BTC'"
+                        [class.eur]="asset.symbol === 'EUR'"
+                      >
+                        {{ asset.symbol === 'BTC' ? '₿'
+                          : asset.symbol === 'EUR' ? '€'
+                          : asset.symbol.charAt(0) }}
+                      </span>
+
+                      <div class="coin-name">
+                        <strong>{{ asset.symbol }}</strong>
+                        <small>
+                          {{ asset.symbol === 'BTC' ? 'Bitcoin'
+                            : asset.symbol === 'EUR' ? 'Euro'
+                            : 'Kryptowährung' }}
+                        </small>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td>
+                    <strong class="quantity">
+                      {{ asset.total }}
+                    </strong>
+
+                    @if (+asset.in_order > 0) {
+                      <small class="reserved">
+                        {{ asset.in_order }} reserviert
+                      </small>
+                    }
+                  </td>
+
+                  <td>
+                    @if (asset.price_eur !== null) {
+                      {{ asset.price_eur
+                        | currency:'EUR':'symbol':'1.2-2' }}
+                    } @else {
+                      —
+                    }
+                  </td>
+
+                  <td class="right value">
+                    @if (asset.value_eur !== null) {
+                      {{ asset.value_eur
+                        | currency:'EUR':'symbol':'1.2-2' }}
+                    } @else {
+                      Kurs fehlt
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="panel-footer">
+          <span>
+            Gesamtbestand enthält auch reservierte Coins.
+          </span>
+          <span>
+            Kurse: Bitvavo
+          </span>
+        </div>
+      </section>
+
+      <!-- BEREITS EXISTIERENDE TRADE-HISTORIE -->
+      <app-trade-history />
+
+      <footer class="footer">
+        <span>CRYPTO INTELLIGENCE PLATFORM</span>
+        <span>Automatische Aktualisierung alle 30 Sekunden</span>
+      </footer>
+
+    } @else {
+      <div class="loading">
+        Portfolio wird geladen ...
+      </div>
+    }
+
+  </main>
+</div>

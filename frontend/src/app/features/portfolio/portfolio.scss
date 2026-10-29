@@ -1,0 +1,465 @@
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background: #090e18;
+  color: #eef2f8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.portfolio-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      ellipse at top right,
+      rgba(16, 185, 129, 0.05),
+      transparent 45%
+    ),
+    #090e18;
+}
+
+/* HEADER */
+
+.topbar {
+  min-height: 74px;
+  padding: 16px clamp(20px, 5vw, 64px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid #1d2939;
+  background: #0d1420;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: #10b981;
+  color: #052019;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  strong {
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+
+  span {
+    color: #78879c;
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #a1b5c4;
+  font-size: 12px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+
+  &.offline {
+    background: #fb7185;
+  }
+}
+
+/* CONTENT */
+
+.dashboard-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 38px clamp(20px, 5vw, 64px);
+}
+
+.welcome {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 28px;
+
+  h1 {
+    margin: 9px 0;
+    font-size: clamp(26px, 3vw, 36px);
+    font-weight: 750;
+    letter-spacing: -1px;
+  }
+}
+
+.eyebrow {
+  margin: 0;
+  color: #34d399;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.7px;
+}
+
+.accent {
+  color: #10b981;
+}
+
+.subtitle {
+  color: #8b9bb0;
+  font-size: 13px;
+  margin: 0;
+}
+
+.update-info {
+  color: #91a2b6;
+  font-size: 12px;
+}
+
+.sync-symbol {
+  color: #34d399;
+  font-size: 17px;
+  margin-right: 5px;
+}
+
+/* VIER ÜBERSICHTSKARTEN */
+
+.overview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 25px;
+}
+
+.main-card,
+.cash-card,
+.result-card,
+.assets-panel {
+  background: #111a29;
+  border: 1px solid #243144;
+  border-radius: 15px;
+}
+
+.main-card,
+.cash-card,
+.result-card {
+  padding: 25px;
+  min-width: 0;
+}
+
+.main-card {
+  background: linear-gradient(
+    135deg,
+    #15352f 0%,
+    #11252a 60%,
+    #111a29 100%
+  );
+  border-color: #245948;
+}
+
+.cash-card {
+  background: linear-gradient(
+    135deg,
+    #172738,
+    #111a29
+  );
+  border-color: #2c4055;
+}
+
+.card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  > span:first-child {
+    color: #b4c6c0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+}
+
+.currency-tag {
+  border-radius: 6px;
+  padding: 5px 8px;
+  background: rgba(16, 185, 129, 0.13);
+  color: #86efac;
+  font-size: 11px;
+}
+
+.cash-card .currency-tag {
+  background: #243a51;
+  color: #93c5fd;
+}
+
+.main-amount {
+  margin-top: 25px;
+  font-size: clamp(30px, 3vw, 43px);
+  font-weight: 760;
+  letter-spacing: -1.4px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.card-description {
+  margin: 13px 0 0;
+  color: #9eb5ae;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.result-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.card-title {
+  color: #a1b0c4;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.result-value {
+  font-size: clamp(26px, 2.5vw, 34px);
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -1px;
+  overflow-wrap: anywhere;
+
+  &.positive {
+    color: #34d399;
+  }
+
+  &.negative {
+    color: #fb7185;
+  }
+}
+
+.result-card small {
+  color: #7f90a7;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* COIN-TABELLE */
+
+.assets-panel {
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 26px;
+
+  h2 {
+    margin: 7px 0 0;
+    font-size: 21px;
+  }
+}
+
+.panel-description {
+  margin: 8px 0 0;
+  color: #8b9bb0;
+  font-size: 12px;
+}
+
+.panel-label {
+  border: 1px solid #304051;
+  border-radius: 7px;
+  color: #92a5b9;
+  padding: 7px 10px;
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+th {
+  padding: 15px 25px;
+  background: #151f30;
+  color: #75869e;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+td {
+  padding: 18px 25px;
+  border-top: 1px solid #243144;
+  color: #cbd5e1;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+tbody tr:hover {
+  background: #182438;
+}
+
+.right {
+  text-align: right;
+}
+
+.value {
+  color: #f1f5f9;
+  font-weight: 700;
+}
+
+.coin-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.coin-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #334155;
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+
+  &.btc {
+    background: #f7931a;
+  }
+
+  &.eur {
+    background: #245b49;
+    color: #a7f3d0;
+  }
+}
+
+.coin-name {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  strong {
+    color: #f1f5f9;
+  }
+
+  small {
+    font-size: 11px;
+    color: #8291a8;
+  }
+}
+
+.quantity {
+  white-space: nowrap;
+}
+
+.reserved {
+  display: block;
+  margin-top: 5px;
+  color: #d6a967;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.panel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 15px 25px;
+  border-top: 1px solid #243144;
+  color: #71829a;
+  font-size: 11px;
+}
+
+/* MELDUNGEN */
+
+.alert {
+  padding: 14px 17px;
+  margin-bottom: 18px;
+  border: 1px solid #74394b;
+  border-radius: 9px;
+  background: #2d1c29;
+  color: #fda4af;
+  font-size: 12px;
+}
+
+.loading {
+  padding: 65px 20px;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 28px;
+  color: #60718a;
+  font-size: 10px;
+  letter-spacing: 0.4px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 650px) {
+  .overview {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    padding: 15px 20px;
+  }
+
+  .brand-text span {
+    display: none;
+  }
+
+  .dashboard-content {
+    padding-top: 28px;
+  }
+
+  .panel-header {
+    padding: 20px;
+  }
+
+  .main-card,
+  .cash-card,
+  .result-card {
+    padding: 21px;
+  }
+}

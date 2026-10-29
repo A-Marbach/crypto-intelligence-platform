@@ -1,0 +1,99 @@
+
+<section class="trades-panel">
+  <div class="panel-header">
+    <div>
+      <p class="section-label">TRADING HISTORY</p>
+      <h2>Meine Trades</h2>
+      <p>Deine ausgeführten Käufe und Verkäufe auf Bitvavo</p>
+    </div>
+
+    <span class="panel-tag">
+      {{ history()?.count ?? 0 }} Transaktionen
+    </span>
+  </div>
+
+  @if (error()) {
+    <p class="error">{{ error() }}</p>
+  }
+
+  @if (loading() && !history()) {
+    <p class="loading">Trade-Historie wird geladen ...</p>
+  }
+
+  @if (history(); as data) {
+    @if (!data.history_complete) {
+      <p class="notice">
+        Achtung: Es wurden noch nicht alle Seiten der
+        Transaktionshistorie importiert.
+      </p>
+    }
+
+    @if (data.trades.length === 0) {
+      <p class="loading">
+        Noch keine ausgeführten Käufe oder Verkäufe gefunden.
+      </p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>DATUM</th>
+              <th>AKTION</th>
+              <th>COIN</th>
+              <th>KURS</th>
+              <th>MENGE</th>
+              <th>GEBÜHREN</th>
+              <th>GESAMTBETRAG</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (trade of data.trades; track $index) {
+              <tr>
+                <td>
+                  {{ trade.executed_at | date:'dd.MM.yyyy HH:mm' }}
+                </td>
+
+                <td>
+                  <span
+                    class="trade-badge"
+                    [class.buy]="trade.side === 'buy'"
+                    [class.sell]="trade.side === 'sell'"
+                  >
+                    {{ trade.side === 'buy' ? 'Kauf' : 'Verkauf' }}
+                  </span>
+                </td>
+
+                <td>
+                  <strong>{{ trade.symbol }}</strong>
+                  @if (trade.executions > 1) {
+                    <small>{{ trade.executions }} Ausführungen</small>
+                  }
+                </td>
+
+                <td>
+                  {{ trade.price_eur | currency:'EUR':'symbol':'1.2-2' }}
+                </td>
+
+                <td class="quantity">{{ trade.quantity }}</td>
+
+                <td>
+                  {{ trade.fees_eur | currency:'EUR':'symbol':'1.2-2' }}
+                </td>
+
+                <td class="amount">
+                  {{ trade.total_eur | currency:'EUR':'symbol':'1.2-2' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+
+  <div class="panel-footer">
+    <span>Datenquelle: Bitvavo API</span>
+    <span>Automatische Aktualisierung alle 30 Sekunden</span>
+  </div>
+</section>
